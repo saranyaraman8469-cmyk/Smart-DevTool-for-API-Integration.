@@ -1,0 +1,314 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ═══════════════════════════════════════════
+     LIGHT MODE (default :root)
+     ═══════════════════════════════════════════ */
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 93%;
+    --secondary-foreground: 240 10% 10%;
+    --muted: 240 5% 93%;
+    --muted-foreground: 240 5% 40%;
+    --accent: 240 5% 93%;
+    --accent-foreground: 240 10% 10%;
+    --border: 240 6% 88%;
+    --input: 240 6% 88%;
+    --ring: 262 83% 58%;
+    --radius: 0.75rem;
+
+    /* Custom surface tokens for dashboard */
+    --surface: 0 0% 100%;
+    --surface-hover: 240 5% 96%;
+    --surface-border: 240 6% 90%;
+    --surface-text: 240 10% 20%;
+    --surface-text-muted: 240 5% 50%;
+    --surface-elevated: 0 0% 100%;
+    --sidebar-bg: 240 5% 96%;
+    --header-bg: 0 0% 100%;
+  }
+
+  /* ═══════════════════════════════════════════
+     DARK MODE
+     ═══════════════════════════════════════════ */
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 5% 15%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 6% 14%;
+    --input: 240 6% 14%;
+    --ring: 262 83% 58%;
+    --radius: 0.75rem;
+
+    /* Custom surface tokens for dashboard */
+    --surface: 240 10% 6%;
+    --surface-hover: 240 10% 9%;
+    --surface-border: 240 6% 14%;
+    --surface-text: 0 0% 95%;
+    --surface-text-muted: 240 5% 55%;
+    --surface-elevated: 240 10% 8%;
+    --sidebar-bg: 240 10% 4.5%;
+    --header-bg: 240 10% 4.5%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--card));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(262, 50%, 40%);
+  }
+}
+
+@layer components {
+  /* Glass morphism card — adapts to light/dark */
+  .glass-card {
+    @apply rounded-2xl border bg-card text-card-foreground;
+    border-color: hsl(var(--surface-border));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  }
+
+  .dark .glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Premium glow button */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+  }
+
+  .btn-primary:hover {
+    @apply scale-105;
+    box-shadow: 0 0 35px rgba(124, 58, 237, 0.7);
+  }
+
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold border backdrop-blur-sm transition-all duration-300;
+    color: hsl(var(--surface-text));
+    border-color: hsl(var(--border));
+    background: hsl(var(--surface));
+  }
+
+  .btn-secondary:hover {
+    @apply scale-105;
+    background: hsl(var(--surface-hover));
+  }
+
+  /* Animated gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #A78BFA, #818CF8, #38BDF8, #A78BFA);
+    background-size: 200% auto;
+    animation: gradientShift 4s ease infinite;
+  }
+
+  /* Pipeline step */
+  .pipeline-step {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-500;
+    border-color: hsl(var(--border));
+  }
+
+  .pipeline-step.active {
+    @apply border-violet-500/50 bg-violet-500/10;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+
+  .pipeline-step.completed {
+    @apply border-emerald-500/50 bg-emerald-500/10;
+  }
+
+  .pipeline-step.pending {
+    border-color: hsl(var(--border));
+    background: hsl(var(--surface));
+  }
+
+  /* Metric card */
+  .metric-card {
+    @apply glass-card p-6 flex flex-col gap-3;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .metric-card:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  }
+
+  .dark .metric-card:hover {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Sidebar nav item */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nav-item:hover {
+    background: hsl(var(--surface-hover));
+    color: hsl(var(--foreground));
+  }
+
+  .nav-item.active {
+    @apply text-violet-600 dark:text-violet-300 border border-violet-500/20;
+    background-color: rgba(139, 92, 246, 0.1);
+  }
+
+  /* Code block styling */
+  .code-block {
+    @apply rounded-xl border bg-card overflow-hidden;
+    border-color: hsl(var(--border));
+  }
+
+  /* Status badge */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-badge.completed {
+    @apply text-emerald-600 dark:text-emerald-400 border border-emerald-500/20;
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+
+  .status-badge.pending {
+    @apply text-amber-600 dark:text-amber-400 border border-amber-500/20;
+    background-color: rgba(245, 158, 11, 0.1);
+  }
+
+  .status-badge.failed {
+    @apply text-red-600 dark:text-red-400 border border-red-500/20;
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+
+  .status-badge.analyzing, .status-badge.crawling, .status-badge.chunking {
+    @apply text-blue-600 dark:text-blue-400 border border-blue-500/20;
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  /* Animated background mesh — dark only */
+  .mesh-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: hsl(var(--background));
+  }
+
+  .dark .mesh-bg {
+    background:
+      radial-gradient(ellipse 80% 80% at 20% 20%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 80% 80% at 80% 80%, rgba(79, 70, 229, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 60% at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+      hsl(240, 10%, 3.9%);
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply rounded-lg;
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--accent)) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Glass panel for auth pages */
+  .glass-panel {
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
+  .dark .glass-panel {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Command palette overlay */
+  .cmd-overlay {
+    @apply fixed inset-0 z-50 flex items-start justify-center pt-[15vh];
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Upgrade modal */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Keyframes */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

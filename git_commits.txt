@@ -1,0 +1,40 @@
+1. init: repository structure & baseline configuration files
+2. chore: add docker-compose configurations
+3. docs: add license, contributing guidelines, and security policies
+4. feat(backend): install core backend dependencies and configure uvicorn entrypoint
+5. feat(backend): establish Pydantic configuration loader & SQLAlchemy DB models
+6. feat(backend): implement SQLite schema migration & CRUD queries for API items
+7. feat(backend): build documentation web scraper using BeautifulSoup & Playwright
+8. feat(backend): implement recursive document text splitter and FAISS vector indexer
+9. feat(backend): establish base Agent class and LLM models connection (Gemini, OpenAI, Ollama)
+10. feat(backend): build Documentation Analyzer agent (Agent 1)
+11. feat(backend): build Authentication Detector agent (Agent 2)
+12. feat(backend): build Endpoint Extractor agent (Agent 3)
+13. feat(backend): build SDK Finder agent (Agent 4)
+14. feat(backend): build Wrapper Generator agent (Agent 5)
+15. feat(backend): build README Generator agent (Agent 6)
+16. feat(backend): build Code Review Agent (Agent 7)
+17. feat(backend): build Security Analyzer agent (Agent 8)
+18. feat(backend): implement API Health Checker service
+19. feat(backend): implement exporter service for ZIP packaging & Postman/OpenAPI outputs
+20. feat(backend): add API Docs ingestion router and workflows
+21. feat(backend): add wrapper code generation and download endpoint
+22. feat(backend): add RAG chat router for chatting with ingested API documentation
+23. feat(backend): add analytics router for reporting complexity and security scores
+24. test: add Pytest suites for agents and scrapers
+25. feat(frontend): bootstrap Next.js project with Tailwind CSS & TS
+26. style(frontend): customize theme provider & global glassmorphic design system
+27. feat(frontend): implement API client connectors using Fetch API
+28. feat(frontend): design layout and main navigation navbar
+29. feat(frontend): build responsive, premium animated Hero and Features landing section
+30. feat(frontend): design interactive fake pricing page & demo components
+31. feat(frontend): implement sidebar dashboard workspace shell
+32. feat(frontend): build interactive crawler pipeline visualization panel
+33. feat(frontend): build authentic graphical Authentication Flow Diagram
+34. feat(frontend): design endpoint explorer tree structure & playground
+35. feat(frontend): integrate real-time AI Chat assistant with documentation
+36. feat(frontend): design dashboard metrics cards (radar/pie/gauge charts)
+37. feat(frontend): construct historic scrape view & list generated SDK wrappers
+38. feat(frontend): add settings page for API keys, model parameters, and local URLs
+39. docs: create comprehensive master README for documentation, architecture, and guides
+40. build: finalize multi-stage Docker build files & release stable version 1.0.0
