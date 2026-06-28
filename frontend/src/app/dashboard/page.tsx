@@ -49,7 +49,7 @@ function DashboardContent() {
     setDoc(null);
     setEndpoints([]);
     try {
-      const res = await apiDocsAPI.ingest(url.trim());
+      const res = await apiDocsAPI.ingest(url.trim(), language);
       setDoc(res.data);
       if (res.data.status === "completed") {
         const epRes = await apiDocsAPI.getEndpoints(res.data.id);

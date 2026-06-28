@@ -9,7 +9,7 @@ class DocumentationAnalyzer(BaseAgent):
     def __init__(self):
         super().__init__()
 
-    async def analyze(self, doc_text: str) -> Dict[str, Any]:
+    async def analyze(self, doc_text: str, target_language: str = None) -> Dict[str, Any]:
         """
         Analyzes the API documentation text to extract basic metadata and structure.
         """
@@ -27,6 +27,9 @@ class DocumentationAnalyzer(BaseAgent):
             "- 'complexity_score': An integer score from 1 to 100 estimating how difficult this API is to integrate based on documentation volume, depth of headers, auth complexity, and data structures. (1-30: Easy, 31-70: Medium, 71-100: Complex).\n"
             "- 'summary': A comprehensive paragraph summary of the API offerings."
         )
+
+        if target_language:
+            system_prompt += f"\n\nIMPORTANT: The user specifically wants to generate an SDK for the {target_language} programming language. If the documentation includes code examples, types, or syntax specifically for {target_language}, prioritize that information in your understanding and summary."
         
         # Take a subset of the document text if it's extremely long to avoid token overflows
         doc_sample = doc_text[:15000]

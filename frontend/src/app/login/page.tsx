@@ -33,7 +33,16 @@ function LoginForm() {
       })
 
       if (!response.ok) {
-        throw new Error("Invalid username or password")
+        let errorMsg = "Invalid username or password"
+        try {
+          const errData = await response.json()
+          errorMsg = errData.detail || errorMsg
+        } catch {
+          if (response.status >= 500) {
+            errorMsg = `Server error (${response.status}). Make sure the backend is running.`
+          }
+        }
+        throw new Error(errorMsg)
       }
 
       const data = await response.json()

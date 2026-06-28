@@ -1,9 +1,9 @@
 import re
 import httpx
 import logging
+import asyncio
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("scraper")
@@ -60,73 +60,117 @@ class APIScraper:
     async def scrape_url(self, url: str) -> str:
         """
         Scrapes a URL. Auto-redirects known API endpoints to their docs page.
-        Uses Playwright first to render JS, falls back to httpx if it fails.
+        Tries Playwright first (for JS-rendered pages), falls back to httpx.
         """
-        # Resolve known API endpoints to their documentation URLs
         resolved_url = self._resolve_doc_url(url)
-
         logger.info(f"Scraping URL: {resolved_url}")
+
+        # Try Playwright first (in a thread to avoid blocking the event loop)
         try:
-            return await self._scrape_with_playwright(resolved_url)
+            text = await asyncio.wait_for(
+                self._scrape_with_playwright(resolved_url),
+                timeout=45.0
+            )
+            if text and len(text.strip()) > 100:
+                return text
+            raise RuntimeError("Playwright returned empty/too-short content")
         except Exception as e:
-            logger.warning(f"Playwright scraping failed for {resolved_url}: {e}. Retrying with HTTP client...")
-            try:
-                return await self._scrape_with_httpx(resolved_url)
-            except Exception as httpx_err:
-                logger.error(f"HTTPX scraping also failed: {httpx_err}")
-                # Give a helpful error message with the expected docs URL
-                raise RuntimeError(
-                    f"Could not fetch documentation from '{resolved_url}'. "
-                    f"Please use the actual documentation page URL (e.g. "
-                    f"https://stripe.com/docs/api, https://docs.github.com/rest). "
-                    f"Error: {httpx_err}"
-                )
+            logger.warning(f"Playwright failed for {resolved_url}: {e}. Falling back to httpx...")
+
+        # Fallback: plain HTTP request (works for REST API docs, JSON endpoints, etc.)
+        try:
+            text = await asyncio.wait_for(
+                self._scrape_with_httpx(resolved_url),
+                timeout=20.0
+            )
+            return text
+        except Exception as httpx_err:
+            logger.error(f"httpx also failed for {resolved_url}: {httpx_err}")
+            raise RuntimeError(
+                f"Could not fetch documentation from '{resolved_url}'. "
+                f"Please use the actual documentation page URL (e.g. "
+                f"https://stripe.com/docs/api, https://docs.github.com/rest). "
+                f"Error: {httpx_err}"
+            )
 
     async def _scrape_with_playwright(self, url: str) -> str:
+        """Run Playwright in a subprocess-safe way."""
+        try:
+            from playwright.async_api import async_playwright
+        except ImportError:
+            raise RuntimeError("Playwright not installed")
+
         async with async_playwright() as p:
             logger.info("Launching headless Chromium...")
             browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(user_agent=self.headers["User-Agent"])
-            page = await context.new_page()
+            try:
+                context = await browser.new_context(user_agent=self.headers["User-Agent"])
+                page = await context.new_page()
 
-            # Navigate with a generous 30s timeout
-            logger.info(f"Navigating to page {url}...")
-            await page.goto(url, wait_until="networkidle", timeout=30000)
+                logger.info(f"Navigating to {url}...")
+                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                await page.wait_for_timeout(2000)
 
-            # Wait for content to render
-            await page.wait_for_timeout(2000)
-
-            content = await page.content()
-            await browser.close()
-
-            logger.info("Extracting text from rendered HTML...")
-            return self._clean_html(content)
+                content = await page.content()
+                return self._clean_html(content)
+            finally:
+                await browser.close()
 
     async def _scrape_with_httpx(self, url: str) -> str:
-        async with httpx.AsyncClient(headers=self.headers, follow_redirects=True, timeout=20.0) as client:
+        """Fetch page via plain HTTP — works for JSON APIs and static docs."""
+        async with httpx.AsyncClient(
+            headers=self.headers,
+            follow_redirects=True,
+            timeout=20.0
+        ) as client:
             response = await client.get(url)
             response.raise_for_status()
-            logger.info("Extracting text from static HTML...")
-            return self._clean_html(response.text)
+
+            content_type = response.headers.get("content-type", "")
+            if "application/json" in content_type:
+                # It's a JSON API — extract meaningful text from the JSON
+                logger.info("Detected JSON response — converting to readable text...")
+                return self._json_to_text(response.text)
+            else:
+                logger.info("Extracting text from static HTML...")
+                return self._clean_html(response.text)
+
+    def _json_to_text(self, json_text: str) -> str:
+        """Convert a JSON API response to readable plain text for the LLM."""
+        import json
+        try:
+            data = json.loads(json_text)
+            lines = []
+            self._flatten_json(data, lines, prefix="")
+            return "\n".join(lines)
+        except Exception:
+            return json_text[:5000]
+
+    def _flatten_json(self, obj, lines: list, prefix: str, depth: int = 0):
+        """Recursively flatten JSON into readable key: value lines."""
+        if depth > 6:
+            return
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                key = f"{prefix}.{k}" if prefix else k
+                if isinstance(v, (dict, list)):
+                    self._flatten_json(v, lines, key, depth + 1)
+                else:
+                    lines.append(f"{key}: {v}")
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj[:20]):  # limit list items
+                self._flatten_json(item, lines, f"{prefix}[{i}]", depth + 1)
 
     def _clean_html(self, html_content: str) -> str:
         soup = BeautifulSoup(html_content, "html.parser")
 
-        # Remove navigation, headers, footers, scripts, styles to prevent noise in vector store
+        # Remove navigation, headers, footers, scripts, styles
         for element in soup(["script", "style", "noscript", "iframe", "svg", "nav", "footer", "header", "aside"]):
             element.decompose()
 
-        # Get raw text
         text = soup.get_text(separator="\n")
-
-        # Clean up spacing issues
         lines = [line.strip() for line in text.splitlines()]
-
-        # Remove empty lines
         cleaned_chunks = [line for line in lines if line]
-
         cleaned_text = "\n".join(cleaned_chunks)
-
-        # Remove excessive newlines
         cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
         return cleaned_text

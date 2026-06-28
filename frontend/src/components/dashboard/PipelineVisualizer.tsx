@@ -55,7 +55,7 @@ export default function PipelineVisualizer({ status, errorLog }: PipelineVisuali
         <div className="ml-auto">
           <span className={cn("status-badge", status)}>
             {status === "analyzing" && <Loader2 className="w-3 h-3 animate-spin" />}
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Pending"}
           </span>
         </div>
       </div>

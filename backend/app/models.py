@@ -33,6 +33,7 @@ class APIDocument(Base):
     description = Column(Text, nullable=True)
     base_url = Column(String, nullable=True)
     api_type = Column(String, default="REST")  # REST, GraphQL, SOAP, Swagger, OpenAPI
+    target_language = Column(String, nullable=True)
     
     # Ingestion tracking
     status = Column(String, default="pending")  # pending, crawling, chunking, analyzing, completed, failed

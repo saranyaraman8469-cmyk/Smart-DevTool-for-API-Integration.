@@ -26,8 +26,15 @@ export default function RegisterPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || "Registration failed")
+        let errorMsg = "Registration failed. Please try again."
+        try {
+          const errorData = await response.json()
+          errorMsg = errorData.detail || errorMsg
+        } catch {
+          // Response was not JSON (e.g. server error HTML)
+          errorMsg = `Server error (${response.status}). Make sure the backend is running.`
+        }
+        throw new Error(errorMsg)
       }
 
       router.push("/login?registered=true")

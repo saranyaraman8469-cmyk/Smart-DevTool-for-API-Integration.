@@ -13,12 +13,18 @@ logger = logging.getLogger("vector_store")
 
 class VectorStoreService:
     def __init__(self):
-        self.embeddings = self._init_embeddings()
+        self._embeddings = None
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=150,
             separators=["\n\n", "\n", " ", ""],
         )
+
+    @property
+    def embeddings(self):
+        if self._embeddings is None:
+            self._embeddings = self._init_embeddings()
+        return self._embeddings
 
     def _init_embeddings(self):
         """

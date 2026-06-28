@@ -49,7 +49,7 @@ async def execute_ingestion_pipeline(doc_id: int):
         # Step 3: Run Agent 1 (Documentation Analyzer)
         crud.update_api_document_status(db, doc_id, "analyzing")
         analyzer = DocumentationAnalyzer()
-        doc_analysis = await analyzer.analyze(text)
+        doc_analysis = await analyzer.analyze(text, target_language=doc.target_language)
 
         # Step 4: Run Agent 2 (Authentication Detector)
         # Query FAISS for security/credentials blocks
@@ -142,7 +142,7 @@ async def ingest_api_documentation(
         return existing_doc
 
     # Create new document record
-    doc_create = schemas.APIDocumentCreate(url=payload.url)
+    doc_create = schemas.APIDocumentCreate(url=payload.url, target_language=payload.language)
     db_doc = crud.create_api_document(db, doc_create)
     
     # Run the ingestion script asynchronously in background task

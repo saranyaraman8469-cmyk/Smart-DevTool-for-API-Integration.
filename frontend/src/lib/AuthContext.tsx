@@ -29,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedToken = localStorage.getItem("token")
     if (storedToken) {
       setToken(storedToken)
+      // Keep cookie in sync
+      document.cookie = `token=${storedToken}; path=/; max-age=86400; SameSite=Lax`
       // Validate token via proxy — avoids any CORS issues
       fetch("/auth-api/me", {
         headers: { Authorization: `Bearer ${storedToken}` }
@@ -39,11 +41,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(data)
           } else {
             localStorage.removeItem("token")
+            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
             setToken(null)
           }
         })
         .catch(() => {
           localStorage.removeItem("token")
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
           setToken(null)
         })
         .finally(() => setLoading(false))
@@ -54,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem("token", newToken)
+    document.cookie = `token=${newToken}; path=/; max-age=86400; SameSite=Lax`
     setToken(newToken)
     setUser(newUser)
     router.push("/dashboard")
@@ -61,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token")
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     setToken(null)
     setUser(null)
     router.push("/login")

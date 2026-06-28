@@ -37,7 +37,7 @@ apiClient.interceptors.response.use(
 
 // API Document endpoints
 export const apiDocsAPI = {
-  ingest: (url: string) => apiClient.post("/api-docs/ingest", { url }),
+  ingest: (url: string, language?: string) => apiClient.post("/api-docs/ingest", { url, language }),
   getAll: (skip = 0, limit = 100) => apiClient.get(`/api-docs/?skip=${skip}&limit=${limit}`),
   getById: (id: number) => apiClient.get(`/api-docs/${id}`),
   getEndpoints: (docId: number) => apiClient.get(`/api-docs/${docId}/endpoints`),

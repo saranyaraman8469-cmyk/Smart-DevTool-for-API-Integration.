@@ -72,6 +72,7 @@ class APIDocumentBase(BaseModel):
     description: Optional[str] = None
     base_url: Optional[str] = None
     api_type: str = "REST"
+    target_language: Optional[str] = None
     status: str = "pending"
     error_log: Optional[str] = None
     complexity_score: int = 0
@@ -80,6 +81,7 @@ class APIDocumentBase(BaseModel):
 
 class APIDocumentCreate(BaseModel):
     url: str
+    target_language: Optional[str] = None
 
 
 class APIDocumentResponse(APIDocumentBase):
@@ -143,6 +145,8 @@ class ChatMessageResponse(ChatMessageBase):
 # Input payload for ingestion
 class IngestRequest(BaseModel):
     url: str
+    language: Optional[str] = None
+
 
 
 # Chat request/response payloads

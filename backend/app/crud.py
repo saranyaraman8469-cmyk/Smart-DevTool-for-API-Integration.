@@ -34,7 +34,7 @@ def get_api_documents(db: Session, skip: int = 0, limit: int = 100) -> List[mode
 
 
 def create_api_document(db: Session, doc: schemas.APIDocumentCreate) -> models.APIDocument:
-    db_doc = models.APIDocument(url=doc.url)
+    db_doc = models.APIDocument(url=doc.url, target_language=doc.target_language)
     db.add(db_doc)
     db.commit()
     db.refresh(db_doc)
