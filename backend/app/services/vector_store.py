@@ -36,7 +36,7 @@ class VectorStoreService:
             if not settings.GOOGLE_API_KEY:
                 raise ValueError("GOOGLE_API_KEY must be set to use Gemini Embeddings.")
             return GoogleGenerativeAIEmbeddings(
-                model="models/embedding-001",
+                model="models/text-embedding-004",
                 google_api_key=settings.GOOGLE_API_KEY
             )
         else:
