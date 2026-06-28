@@ -12,33 +12,30 @@ logger = logging.getLogger("vector_store")
 
 class GeminiDirectEmbeddings(Embeddings):
     """
-    Custom embeddings class using google-genai SDK directly (stable v1 API).
-    Bypasses langchain-google-genai which uses v1beta and has model availability issues.
+    Custom embeddings using the NEW google-genai SDK (stable v1 API).
+    The old google.generativeai SDK uses v1beta which doesn't support embed_content properly.
     """
     def __init__(self, api_key: str, model: str = "text-embedding-004"):
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        self._genai = genai
+        from google import genai
+        self._client = genai.Client(api_key=api_key)
         self.model = model
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         result = []
         for text in texts:
-            response = self._genai.embed_content(
+            response = self._client.models.embed_content(
                 model=self.model,
-                content=text,
-                task_type="retrieval_document"
+                contents=text,
             )
-            result.append(response["embedding"])
+            result.append(response.embeddings[0].values)
         return result
 
     def embed_query(self, text: str) -> List[float]:
-        response = self._genai.embed_content(
+        response = self._client.models.embed_content(
             model=self.model,
-            content=text,
-            task_type="retrieval_query"
+            contents=text,
         )
-        return response["embedding"]
+        return response.embeddings[0].values
 
 
 class VectorStoreService:
