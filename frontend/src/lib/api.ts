@@ -41,8 +41,8 @@ export const apiDocsAPI = {
   getAll: (skip = 0, limit = 100) => apiClient.get(`/api-docs/?skip=${skip}&limit=${limit}`),
   getById: (id: number) => apiClient.get(`/api-docs/${id}`),
   getEndpoints: (docId: number) => apiClient.get(`/api-docs/${docId}/endpoints`),
-  checkEndpointHealth: (docId: number, endpointId: number) =>
-    apiClient.post(`/api-docs/${docId}/endpoints/${endpointId}/check-health`),
+  checkEndpointHealth: (docId: number, endpointId: number, headers?: Record<string, string>) =>
+    apiClient.post(`/api-docs/${docId}/endpoints/${endpointId}/check-health`, { headers }),
 };
 
 // Wrapper generation endpoints

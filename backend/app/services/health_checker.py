@@ -12,7 +12,7 @@ class APIHealthChecker:
     def __init__(self):
         self.timeout = 5.0  # seconds
 
-    async def check_endpoint(self, db: Session, endpoint_id: int, base_url: str) -> models.Endpoint:
+    async def check_endpoint(self, db: Session, endpoint_id: int, base_url: str, headers: dict = None) -> models.Endpoint:
         """
         Runs a mock HTTP ping against the endpoint, calculates response times, and saves the outcome.
         """
@@ -28,7 +28,7 @@ class APIHealthChecker:
         response_time_ms = 0
         
         try:
-            async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True, headers=headers) as client:
                 response = None
                 # Limit test pings to safe operations or basic checks
                 if endpoint.method.upper() == "GET":

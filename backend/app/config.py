@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # LLM Settings
     LLM_PROVIDER: str = "gemini"  # gemini, openai, ollama
-    LLM_MODEL: str = "gemini-2.5-flash"
+    LLM_MODEL: str = "gemini-1.5-flash"
 
     # API Keys & URLs
     GOOGLE_API_KEY: Optional[str] = None

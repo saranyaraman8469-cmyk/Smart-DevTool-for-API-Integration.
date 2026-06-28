@@ -148,6 +148,10 @@ class IngestRequest(BaseModel):
     language: Optional[str] = None
 
 
+class HealthCheckRequest(BaseModel):
+    headers: Optional[Dict[str, str]] = None
+
+
 
 # Chat request/response payloads
 class ChatRequest(BaseModel):

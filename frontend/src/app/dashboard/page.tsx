@@ -24,6 +24,7 @@ function DashboardContent() {
   const [doc, setDoc] = useState<any>(null);
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"pipeline" | "endpoints" | "auth" | "chat" | "metrics">("pipeline");
+  const [authHeaders, setAuthHeaders] = useState<Record<string, string>>({});
 
   // Poll for document status until completed
   useEffect(() => {
@@ -74,7 +75,7 @@ function DashboardContent() {
   const handleHealthCheck = async (endpointId: number) => {
     if (!doc) return;
     try {
-      const res = await apiDocsAPI.checkEndpointHealth(doc.id, endpointId);
+      const res = await apiDocsAPI.checkEndpointHealth(doc.id, endpointId, authHeaders);
       setEndpoints((prev) => prev.map((ep) => ep.id === endpointId ? res.data : ep));
     } catch {}
   };
@@ -191,6 +192,7 @@ function DashboardContent() {
                       description={authConfig.description}
                       rateLimitLimit={authConfig.rate_limit_limit}
                       rateLimitWindow={authConfig.rate_limit_window}
+                      onAuthChange={setAuthHeaders}
                     />
                   )}
                   {activeTab === "chat" && doc.status === "completed" && <ChatInterface docId={doc.id} />}

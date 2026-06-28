@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Key, RefreshCw, AlertCircle } from "lucide-react";
 
@@ -9,6 +10,7 @@ interface AuthFlowDiagramProps {
   description?: string;
   rateLimitLimit?: number;
   rateLimitWindow?: string;
+  onAuthChange?: (headers: Record<string, string>) => void;
 }
 
 const AUTH_FLOWS: Record<string, { steps: string[]; color: string; icon: typeof Lock }> = {
@@ -58,9 +60,28 @@ const AUTH_FLOWS: Record<string, { steps: string[]; color: string; icon: typeof 
   },
 };
 
-export default function AuthFlowDiagram({ authType, headerName, tokenUrl, description, rateLimitLimit, rateLimitWindow }: AuthFlowDiagramProps) {
+export default function AuthFlowDiagram({ authType, headerName, tokenUrl, description, rateLimitLimit, rateLimitWindow, onAuthChange }: AuthFlowDiagramProps) {
   const flow = AUTH_FLOWS[authType] || AUTH_FLOWS["bearer"];
   const Icon = flow.icon;
+  const [credentialInput, setCredentialInput] = useState("");
+
+  const handleSaveCredentials = () => {
+    if (!onAuthChange) return;
+    
+    let headers: Record<string, string> = {};
+    const hName = headerName || "Authorization";
+    
+    if (authType === "bearer" || authType === "oauth2") {
+      headers[hName] = `Bearer ${credentialInput}`;
+    } else if (authType === "basic") {
+      headers[hName] = `Basic ${btoa(credentialInput)}`; 
+    } else {
+      headers[hName] = credentialInput; 
+    }
+    
+    onAuthChange(headers);
+    alert("Credentials configured for health checks!");
+  };
 
   return (
     <div className="glass-card p-6">
@@ -127,6 +148,29 @@ export default function AuthFlowDiagram({ authType, headerName, tokenUrl, descri
           </div>
         )}
       </div>
+
+      {/* Credentials Input */}
+      {onAuthChange && (
+        <div className="mt-6 pt-6 border-t border-foreground/5">
+          <h4 className="text-foreground font-semibold text-sm mb-3">Configure Test Credentials</h4>
+          <div className="flex gap-3">
+            <input
+              type="password"
+              value={credentialInput}
+              onChange={(e) => setCredentialInput(e.target.value)}
+              placeholder={`Enter your ${authType} token/key`}
+              className="flex-1 px-4 py-2 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+            />
+            <button
+              onClick={handleSaveCredentials}
+              className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors"
+            >
+              Save
+            </button>
+          </div>
+          <p className="text-foreground/40 text-xs mt-2">These credentials will be sent with Health Check requests.</p>
+        </div>
+      )}
     </div>
   );
 }

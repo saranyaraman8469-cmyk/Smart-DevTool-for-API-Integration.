@@ -1,0 +1,35 @@
+services:
+  # Backend FastAPI Service
+  - type: web
+    name: devtool-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devtool-db
+          property: connectionString
+      - key: LLM_PROVIDER
+        value: mock  # Change to gemini to use Gemini API
+      - key: GOOGLE_API_KEY
+        sync: false  # You will enter this in the Render dashboard
+
+  # Frontend Next.js Service
+  - type: web
+    name: devtool-frontend
+    runtime: docker
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromRoute:
+          type: web
+          name: devtool-backend
+          property: url
+
+databases:
+  - name: devtool-db
+    plan: free

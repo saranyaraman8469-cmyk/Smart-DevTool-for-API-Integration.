@@ -169,7 +169,12 @@ def read_document_endpoints(doc_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{doc_id}/endpoints/{endpoint_id}/check-health", response_model=schemas.EndpointResponse)
-async def check_single_endpoint_health(doc_id: int, endpoint_id: int, db: Session = Depends(get_db)):
+async def check_single_endpoint_health(
+    doc_id: int, 
+    endpoint_id: int, 
+    request: schemas.HealthCheckRequest = None,
+    db: Session = Depends(get_db)
+):
     """
     Triggers a live connection check against the specific endpoint.
     """
@@ -178,7 +183,8 @@ async def check_single_endpoint_health(doc_id: int, endpoint_id: int, db: Sessio
         raise HTTPException(status_code=404, detail="API Document or associated Base URL not found.")
         
     try:
-        updated_endpoint = await health_checker.check_endpoint(db, endpoint_id, doc.base_url)
+        headers = request.headers if request else None
+        updated_endpoint = await health_checker.check_endpoint(db, endpoint_id, doc.base_url, headers=headers)
         return updated_endpoint
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"Health check execution failed: {err}")
