@@ -4,10 +4,41 @@ import logging
 from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_core.embeddings import Embeddings
 from app.config import settings
 
 logger = logging.getLogger("vector_store")
+
+
+class GeminiDirectEmbeddings(Embeddings):
+    """
+    Custom embeddings class using google-genai SDK directly (stable v1 API).
+    Bypasses langchain-google-genai which uses v1beta and has model availability issues.
+    """
+    def __init__(self, api_key: str, model: str = "text-embedding-004"):
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        self._genai = genai
+        self.model = model
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        result = []
+        for text in texts:
+            response = self._genai.embed_content(
+                model=self.model,
+                content=text,
+                task_type="retrieval_document"
+            )
+            result.append(response["embedding"])
+        return result
+
+    def embed_query(self, text: str) -> List[float]:
+        response = self._genai.embed_content(
+            model=self.model,
+            content=text,
+            task_type="retrieval_query"
+        )
+        return response["embedding"]
 
 
 class VectorStoreService:
@@ -32,12 +63,12 @@ class VectorStoreService:
         - local: Uses HuggingFace SentenceTransformers (requires sentence-transformers installed, for local dev).
         """
         if settings.EMBEDDING_PROVIDER == "gemini":
-            logger.info("Initializing Google Gemini Embeddings...")
+            logger.info("Initializing Google Gemini Direct Embeddings (text-embedding-004)...")
             if not settings.GOOGLE_API_KEY:
                 raise ValueError("GOOGLE_API_KEY must be set to use Gemini Embeddings.")
-            return GoogleGenerativeAIEmbeddings(
-                model="models/text-embedding-004",
-                google_api_key=settings.GOOGLE_API_KEY
+            return GeminiDirectEmbeddings(
+                api_key=settings.GOOGLE_API_KEY,
+                model="text-embedding-004"
             )
         else:
             # Lazy import - only load sentence-transformers when running locally
