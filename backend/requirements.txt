@@ -9,18 +9,20 @@ langchain-community>=0.0.10
 langchain-google-genai>=0.0.6
 langchain-openai>=0.0.2
 langchain-ollama>=0.1.0
-langchain-huggingface>=0.1.0
+langchain-text-splitters>=0.0.1
 google-generativeai>=0.3.0
+google-genai>=0.1.0
 beautifulsoup4>=4.12.0
 playwright>=1.35.0
 faiss-cpu>=1.7.4
-sentence-transformers>=2.2.2
 httpx>=0.24.1
 python-multipart>=0.0.6
 aiofiles>=23.1.0
 jinja2>=3.1.2
-pytest>=7.3.1
-pytest-asyncio>=0.21.0
 passlib[bcrypt]>=1.7.4
 pyjwt>=2.8.0
 bcrypt>=4.0.0
+# sentence-transformers and langchain-huggingface are intentionally excluded here.
+# They pull in torch/CUDA (3GB+) which exceeds cloud free-tier RAM limits.
+# For local dev with EMBEDDING_PROVIDER=local, install manually:
+# pip install sentence-transformers langchain-huggingface
