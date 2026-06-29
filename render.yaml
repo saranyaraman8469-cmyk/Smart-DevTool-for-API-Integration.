@@ -11,10 +11,16 @@ services:
         fromDatabase:
           name: devtool-db
           property: connectionString
+      - key: ENVIRONMENT
+        value: production
       - key: LLM_PROVIDER
-        value: mock  # Change to gemini to use Gemini API
+        value: gemini
+      - key: LLM_MODEL
+        value: gemini-1.5-flash
+      - key: EMBEDDING_PROVIDER
+        value: gemini
       - key: GOOGLE_API_KEY
-        sync: false  # You will enter this in the Render dashboard
+        sync: false  # Set this in the Render dashboard → Environment tab
 
   # Frontend Next.js Service
   - type: web

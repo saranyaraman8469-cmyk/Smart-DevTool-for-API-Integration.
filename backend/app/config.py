@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3"
 
     # Vector Store & Embedding Settings
-    EMBEDDING_PROVIDER: str = "local"  # local, gemini
+    EMBEDDING_PROVIDER: str = "gemini"  # gemini (cloud/default), local (requires sentence-transformers installed)
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
     FAISS_INDEX_PATH: str = "faiss_index"
 
