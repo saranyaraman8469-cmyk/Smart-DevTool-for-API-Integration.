@@ -28,9 +28,9 @@ class BaseAgent:
             return "mock"
             
         if provider == "gemini":
-            if not settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY == "your_gemini_api_key_here":
-                logger.warning("Invalid or missing GOOGLE_API_KEY, falling back to mock provider.")
-                return "mock"
+            if not settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY in ("your_gemini_api_key_here", ""):
+                logger.error("GOOGLE_API_KEY is not set or is a placeholder. Cannot initialize Gemini LLM.")
+                return "no_api_key"
             return ChatGoogleGenerativeAI(
                 model=model,
                 google_api_key=settings.GOOGLE_API_KEY,
@@ -75,10 +75,20 @@ class BaseAgent:
     async def call_llm(self, system_prompt: str, user_prompt: str) -> str:
         """
         Executes a call to the LLM with system and user messages.
+        Returns the real LLM response, or a clear human-readable error string.
         """
         if self.llm == "mock":
             logger.info("Using mock LLM response")
             return self._get_mock_response(system_prompt, is_fallback=False)
+
+        if self.llm == "no_api_key":
+            logger.error("Cannot call LLM: GOOGLE_API_KEY is not configured.")
+            return (
+                "⚠️ **AI is not configured yet.**\n\n"
+                "The `GOOGLE_API_KEY` environment variable is missing or invalid on the server. "
+                "Please set a valid Gemini API key in the Render dashboard under **Environment → GOOGLE_API_KEY** "
+                "and redeploy the backend service."
+            )
             
         messages = [
             SystemMessage(content=system_prompt),
@@ -88,7 +98,7 @@ class BaseAgent:
         import asyncio
         
         max_retries = 3
-        base_delay = 15  # Start with a 15-second delay for rate limits
+        base_delay = 5  # Start with a 5-second delay for rate limits
         
         for attempt in range(max_retries):
             try:
@@ -96,22 +106,46 @@ class BaseAgent:
                 return response.content
             except Exception as e:
                 error_str = str(e)
+                # Hard quota exceeded — no point retrying
+                if ("429" in error_str or "RESOURCE_EXHAUSTED" in error_str) and (
+                    "quota" in error_str.lower() or "exceeded" in error_str.lower()
+                ):
+                    logger.error(f"Gemini API daily quota exceeded: {error_str}")
+                    return (
+                        "⚠️ **Gemini API quota exceeded.**\n\n"
+                        "The free-tier Gemini API daily limit has been reached. "
+                        "Please check your [Google AI Studio quota](https://aistudio.google.com/) "
+                        "or upgrade to a paid API plan and redeploy."
+                    )
+                # Transient rate limit — retry with backoff
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                    if "quota" in error_str.lower() or "limit" in error_str.lower() or "exceeded" in error_str.lower() or "resource_exhausted" in error_str.lower():
-                        logger.error(f"Gemini API quota/limit exceeded: {error_str}. Falling back to mock responses.")
-                        break
                     if attempt < max_retries - 1:
                         delay = base_delay * (2 ** attempt)
-                        logger.warning(f"Rate limit hit. Retrying in {delay} seconds... (Attempt {attempt+1}/{max_retries})")
+                        logger.warning(f"Rate limit hit. Retrying in {delay}s... (Attempt {attempt+1}/{max_retries})")
                         await asyncio.sleep(delay)
                         continue
-                
-                logger.error(f"Error calling LLM: {e}")
+                # Invalid API key
+                if "API_KEY_INVALID" in error_str or "invalid api key" in error_str.lower() or "401" in error_str:
+                    logger.error(f"Invalid Gemini API key: {error_str}")
+                    return (
+                        "⚠️ **Invalid API Key.**\n\n"
+                        "The `GOOGLE_API_KEY` set on the server is not valid. "
+                        "Please get a valid key from [Google AI Studio](https://aistudio.google.com/app/apikey) "
+                        "and update it in the Render dashboard under **Environment → GOOGLE_API_KEY**."
+                    )
+                logger.error(f"LLM call failed on attempt {attempt+1}: {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2)
+                    continue
                 break
 
-        # Fallback to mock responses if LLM invocation fails (e.g. quota limits exceeded)
-        logger.warning("LLM invocation failed or quota exceeded. Falling back to mock response to allow the pipeline to proceed.")
-        return self._get_mock_response(system_prompt, is_fallback=True)
+        # Final fallback — return a readable error, NOT silent mock JSON
+        logger.error("All LLM call attempts failed.")
+        return (
+            "⚠️ **AI response failed.**\n\n"
+            "The AI model could not generate a response after multiple attempts. "
+            "This may be a temporary issue. Please try again in a moment."
+        )
 
     def extract_json(self, text: str) -> Dict[str, Any]:
         """
