@@ -244,7 +244,7 @@ Generated API Wrapper
 ![Result](Screenshots/result.png)
 
 Deploy link
-https://smart-dev-tool-for-api-integration-seven.vercel.app/login
+https://smart-dev-tool-for-api-integration-hzze-b6vx5bogp-saranyasree.vercel.app/login
 
 📝 License
 
